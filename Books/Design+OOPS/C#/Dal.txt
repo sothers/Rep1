@@ -1,0 +1,768 @@
+
+DataAccess Class
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Data;
+using Microsoft.Practices.EnterpriseLibrary.Data;
+using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
+using System.Data.Common;
+using System.Data.SqlClient;
+using System.Configuration;
+namespace AXAART.Grasp.Common.Utility.DbUtility
+{
+    public class DALUtility
+    {
+
+        /// <summary>
+        /// To get the sp name and parameter and retrun datatable using Enterprise Library
+        /// </summary>
+        /// <param name="storedProcedureName">Exist SP Name as string</param>
+        /// <param name="arrParam">n number of parameter</param>
+        /// <returns></returns>
+        public static DataTable ExecuteDataTable(string storedProcedureName, params SqlParameter[] arrParam)
+        {
+            //IDataReader dataReader = null;
+            DataSet ds = null;
+            Database databaseObj = DatabaseObjectCreator.CreateInstance().DatabaseObject;
+            DbCommand dbCommand = databaseObj.GetStoredProcCommand(storedProcedureName);
+            if (arrParam != null)
+            {
+                foreach (SqlParameter param in arrParam)
+                    dbCommand.Parameters.Add(param);
+            }
+            ds = databaseObj.ExecuteDataSet(dbCommand);
+            //dataReader = databaseObj.ExecuteReader(dbCommand);
+
+            //DataSet ds = new DataSet();
+            //ds.Load(dataReader, LoadOption.PreserveChanges, "table1");
+
+            if (ds.Tables.Count > 0)
+            {
+                DataRow drow = ds.Tables[0].NewRow();
+                return ds.Tables[0];
+            }
+            else
+            {
+                return null;
+            }
+
+        }
+        /// <summary>
+        /// To get the sp name and parameter and retrun datatable using Enterprise Library
+        /// </summary>
+        /// <param name="storedProcedureName">Exist SP Name as string</param>
+        /// <param name="arrParam">n number of parameter</param>
+        /// <returns></returns>
+        public static DataSet ExecuteDataSet(string storedProcedureName, params SqlParameter[] arrParam)
+        {
+            DataSet ds = null;
+            //IDataReader dataReader = null;
+            Database databaseObj = DatabaseObjectCreator.CreateInstance().DatabaseObject;
+            DbCommand dbCommand = databaseObj.GetStoredProcCommand(storedProcedureName);
+            if (arrParam != null)
+            {
+                foreach (SqlParameter param in arrParam)
+                    dbCommand.Parameters.Add(param);
+            }
+            ds = databaseObj.ExecuteDataSet(dbCommand);
+            //dataReader = databaseObj.ExecuteReader(dbCommand);
+            //ds.Load(dataReader, LoadOption.PreserveChanges, "table1");
+            //return ds;
+            if (ds.Tables.Count > 0)
+            {
+                return ds;
+            }
+            else
+            {
+                return null;
+            }
+
+        }
+
+        /// <summary>
+        /// To get the sp name and parameter and retrun datatable using Enterprise Library
+        /// </summary>
+        /// <param name="storedProcedureName">Exist SP Name as string</param>
+        /// <returns></returns>
+        public static DataTable ExecuteDataTable(string storedProcedureName)
+        {
+            DataSet ds = null;
+            //IDataReader dataReader = null; 
+            Database databaseObj = DatabaseObjectCreator.CreateInstance().DatabaseObject;
+            DbCommand dbCommand = databaseObj.GetStoredProcCommand(storedProcedureName);
+            ds = databaseObj.ExecuteDataSet(dbCommand);
+            //dataReader = databaseObj.ExecuteReader(dbCommand);
+
+            //ds.Load(dataReader, LoadOption.PreserveChanges, "table1");
+            if (ds.Tables.Count > 0)
+            {
+                return ds.Tables[0];
+            }
+            else
+            {
+                return null;
+            }
+
+        }
+
+        public static DataTable ExecuteSP(string paramField, int paramValue, string spName)
+        {
+            SqlParameter[] param = new SqlParameter[1];
+            param[0] = new SqlParameter(paramField, paramValue);
+            DataTable dt = ExecuteDataTable(spName, param);
+            return dt;
+        }
+        public static DataTable ExecuteSP(string paramField, string paramValue, string spName)
+        {
+            SqlParameter[] param = new SqlParameter[1];
+            param[0] = new SqlParameter(paramField, paramValue);
+            DataTable dt = ExecuteDataTable(spName, param);
+            return dt;
+        }
+        public static DataSet ExecuteSPForDataSet(string paramField, int paramValue, string spName)
+        {
+            SqlParameter[] param = new SqlParameter[1];
+            param[0] = new SqlParameter(paramField, paramValue);
+            DataSet ds = DALUtility.ExecuteDataSet(spName, param);
+            return ds;
+        }
+
+        public static void ExecuteSP(string storedProcedureName, params SqlParameter[] arrParam)
+        {
+            //DataSet ds = null;
+            //IDataReader dataReader = null; 
+            Database databaseObj = DatabaseObjectCreator.CreateInstance().DatabaseObject;
+            DbCommand dbCommand = databaseObj.GetStoredProcCommand(storedProcedureName);
+
+            if (arrParam != null)
+            {
+                foreach (SqlParameter param in arrParam)
+                    dbCommand.Parameters.Add(param);
+            }
+            databaseObj.ExecuteNonQuery(dbCommand);
+            //ds = databaseObj.ExecuteDataSet(dbCommand);
+        }
+
+    }
+}
+
+
+Database Object Creation Class
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Data;
+using Microsoft.Practices.EnterpriseLibrary.Data;
+using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
+using System.Data.Common;
+using System.Data.SqlClient;
+using System.Configuration;
+using System.IO;
+namespace AXAART.Grasp.Common.Utility.DbUtility
+{
+    class DatabaseObjectCreator
+    {
+        /// <summary>
+        /// Retrun single ton object on DatabaseObjectCreator
+        /// </summary>
+        private static DatabaseObjectCreator _databaseObjectCreator = null;
+
+        private DatabaseObjectCreator() { }
+
+        public static DatabaseObjectCreator CreateInstance()
+        {
+            if (_databaseObjectCreator == null)
+                _databaseObjectCreator = new DatabaseObjectCreator();
+            return _databaseObjectCreator;
+        }
+
+        public Database DatabaseObject
+        {
+            get
+            {
+                Database databaseObj = DatabaseFactory.CreateDatabase("connCollectors");
+                databaseObj = DatabaseFactory.CreateDatabase();
+                return databaseObj;
+            }
+        }
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Data;
+using System.Reflection;
+
+namespace AXAART.Grasp.Common.Utility.ConvertUtility
+{
+    public static class CollectionsConvertUtility
+    {
+        /// <summary>
+        /// Convert datatable to collection
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="dt"></param>
+        /// <returns></returns>
+        public static List<T> ToCollection<T>(this DataTable dt)
+        {
+            List<T> lst = new System.Collections.Generic.List<T>();
+            Type tClass = typeof(T);
+            PropertyInfo[] pClass = tClass.GetProperties();
+            List<DataColumn> dc = dt.Columns.Cast<DataColumn>().ToList();
+            T cn;
+            foreach (DataRow item in dt.Rows)
+            {
+                cn = (T)Activator.CreateInstance(tClass);
+                foreach (PropertyInfo pc in pClass)
+                {
+                    // Can comment try catch block. 
+                    try
+                    {
+                        DataColumn d = dc.Find(c => c.ColumnName == pc.Name);
+                        if (d != null)
+                            pc.SetValue(cn, item[pc.Name], null);
+                        //pc.SetValue(cn, IIf(item[pc.Name].ToString() == "", item[pc.Name], ""), null);
+                    }
+                    catch
+                    {
+                    }
+                }
+                lst.Add(cn);
+            }
+            return lst;
+        }
+
+        /// <summary>
+        /// Convert collection to datatable
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="items"></param>
+        /// <returns></returns>
+        public static DataTable ToDataTable<T>(List<T> items)
+        {
+            DataTable dataTable = new DataTable(typeof(T).Name);
+            //Get all the properties
+            PropertyInfo[] Props = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (PropertyInfo prop in Props)
+            {
+                //Setting column names as Property names
+                dataTable.Columns.Add(prop.Name);
+            }
+            foreach (T item in items)
+            {
+                var values = new object[Props.Length];
+                for (int i = 0; i < Props.Length; i++)
+                {
+                    //inserting property values to datatable rows
+                    values[i] = Props[i].GetValue(item, null);
+                }
+                dataTable.Rows.Add(values);
+            }
+            //put a breakpoint here and check datatable
+            return dataTable;
+        }
+
+        /// <summary>
+        /// Reverse the input string
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static string Reverse(string str)
+        {
+            if (str.Length == 1)
+                return str;
+            else
+                return str[str.Length - 1] + Reverse(str.Substring(0, str.Length - 1));
+        }
+    }
+}
+
+Encrypt Decrypt
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Security.Cryptography;
+using System.IO;
+namespace AXAART.Grasp.Common.Utility.EncryptDecrypt
+{
+    /// <summary>
+    /// Use for password Encryption
+    /// </summary>
+    public class EncryptDecryptPassword
+    {
+        public static string EncryptPassword(string clearPassword)
+        {
+
+            string passwordSingleHashSha256 = ComputeHash(clearPassword, 8);
+            string passwordHashSha256 = ComputeHash(passwordSingleHashSha256, 12);
+            return passwordHashSha256;
+
+        }
+        /// <summary>
+        /// Generates a hash for the given plain text value and returns a
+        /// base64-encoded result. Before the hash is computed, a random salt
+        /// is generated and appended to the plain text. This salt is stored at
+        /// the end of the hash value, so it can be used later for hash
+        /// verification.
+        /// </summary>
+        /// <param name="plainText">Password</param>
+        /// <returns></returns>
+        public static string ComputeHash(string plainText, int saltBytesLength)
+        {
+            string plainTextPassword = ConvertUtility.CollectionsConvertUtility.Reverse(plainText);
+            byte[] saltBytes = new byte[saltBytesLength];
+            // Convert plain text into a byte array.
+            byte[] plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainTextPassword);
+
+            // Allocate array, which will hold plain text and salt.
+            byte[] plainTextWithSaltBytes = new byte[plainTextBytes.Length + saltBytes.Length];
+
+            // Copy plain text bytes into resulting array.
+            for (int i = 0; i < plainTextBytes.Length; i++)
+                plainTextWithSaltBytes[i] = plainTextBytes[i];
+
+            // Append salt bytes to the resulting array.
+            for (int i = 0; i < saltBytes.Length; i++)
+                plainTextWithSaltBytes[plainTextBytes.Length + i] = saltBytes[i];
+
+            HashAlgorithm hash = new SHA256Managed();
+
+            // Compute hash value of our plain text with appended salt.
+            byte[] hashBytes = hash.ComputeHash(plainTextWithSaltBytes);
+
+            // Create array which will hold hash and original salt bytes.
+            //byte[] hashWithSaltBytes = new byte[hashBytes.Length +
+            //                                    saltBytes.Length];
+            byte[] hashWithSaltBytes = new byte[hashBytes.Length];
+            // Copy hash bytes into resulting array.
+            for (int i = 0; i < hashBytes.Length; i++)
+                hashWithSaltBytes[i] = hashBytes[i];
+
+            //// Append salt bytes to the result.
+            //for (int i = 0; i < saltBytes.Length; i++)
+            //    hashWithSaltBytes[hashBytes.Length + i] = saltBytes[i];
+
+            // Convert result into a base64-encoded string.
+            string hashValue = Convert.ToBase64String(hashWithSaltBytes);
+
+            hashValue = ConvertUtility.CollectionsConvertUtility.Reverse(hashValue);
+            // Return the result.
+            return hashValue;
+        }
+
+        public static Boolean ComputeIOSData(string str)
+        {
+            string strCheck = string.Empty;
+            if (str.Length >= 4)
+            {
+                strCheck = str.Substring(0, 2) + str.Substring(str.Length - 2, 2);
+            }
+            if (strCheck.ToUpper() == "IPAD")
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+
+        public static string GetIOSData(string str)
+        {
+            string strCheck = str.Substring(2, str.Length - 4);
+            if (string.IsNullOrEmpty(strCheck))
+            {
+                return null;
+            }
+            else
+            {
+                strCheck = ConvertUtility.CollectionsConvertUtility.Reverse(strCheck);
+                byte[] b = Convert.FromBase64String(strCheck);
+                string strOriginal = System.Text.Encoding.UTF8.GetString(b);
+                return strOriginal;
+            }
+        }
+
+        public static string Base64Encode(string plainText)
+        {
+            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+            return System.Convert.ToBase64String(plainTextBytes);
+        }
+        public static string Base64Decode(string base64EncodedData)
+        {
+            var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
+            return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
+        }
+    }
+}
+
+decrypt string
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Security.Cryptography;
+using System.IO;
+using System.Text;
+
+
+namespace AXAART.Grasp.Common.Utility.EncryptDecrypt
+{
+    /// <summary>
+    /// Encrypt and Decrypt of the Query String
+    /// </summary>
+    public class EncryptDecryptQueryString
+    {
+        private byte[] key = { };
+        private byte[] IV = { 0x12, 0x34, 0x56, 0x78, 0x90, 0xab, 0xcd, 0xef };
+        
+        public string Decrypt(string stringToDecrypt)
+        {
+            byte[] inputByteArray = new byte[stringToDecrypt.Length + 1];
+            try
+            {
+                key = System.Text.Encoding.UTF8.GetBytes("Hexaware");
+                DESCryptoServiceProvider des = new DESCryptoServiceProvider();
+                inputByteArray = Convert.FromBase64String(stringToDecrypt);
+                MemoryStream ms = new MemoryStream();
+                CryptoStream cs = new CryptoStream(ms,
+                  des.CreateDecryptor(key, IV), CryptoStreamMode.Write);
+                cs.Write(inputByteArray, 0, inputByteArray.Length);
+                cs.FlushFinalBlock();
+                System.Text.Encoding encoding = System.Text.Encoding.UTF8;
+                return encoding.GetString(ms.ToArray());
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+        }
+
+        public string Encrypt(string stringToEncrypt)
+        {
+            try
+            {
+                key = System.Text.Encoding.UTF8.GetBytes("Hexaware");
+                DESCryptoServiceProvider des = new DESCryptoServiceProvider();
+                byte[] inputByteArray = Encoding.UTF8.GetBytes(stringToEncrypt);
+                MemoryStream ms = new MemoryStream();
+                CryptoStream cs = new CryptoStream(ms,
+                  des.CreateEncryptor(key, IV), CryptoStreamMode.Write);
+                cs.Write(inputByteArray, 0, inputByteArray.Length);
+                cs.FlushFinalBlock();
+                return Convert.ToBase64String(ms.ToArray());
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+        }
+    }
+}
+
+
+Validation
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.IO;
+
+namespace AXAART.Grasp.Common.Utility.ValidationUtility
+{
+    public class InputValidation
+    {
+        
+        /// <summary>
+        /// IsInteger check
+        /// </summary>
+        /// <param name="strInput"></param>
+        /// <returns></returns>
+        public static Boolean IsInteger(string strInput)
+        {
+            Regex pattern = new Regex("^-?[0-9]+$", RegexOptions.Singleline);
+            return pattern.Match(strInput).Success;
+
+        }
+        /// <summary>
+        ///  Convert byte arry to image
+        /// </summary>
+        /// <param name="byteArrayIn"></param>
+        /// <returns></returns>
+        public static System.Drawing.Image byteArrayToImage(byte[] byteArrayIn)
+        {
+            MemoryStream ms = new MemoryStream(byteArrayIn);
+            System.Drawing.Image returnImage = System.Drawing.Image.FromStream(ms);
+            return returnImage;
+        }
+
+        /// <summary>
+        /// Retrun Possible Percentage based on given interger
+        /// </summary>
+        /// <param name="iVal"></param>
+        /// <returns></returns>
+        public static string PossiblePercentage(int iVal)
+        {
+            string strVal = string.Empty;
+            int multiVal = iVal;
+            for (int i = 0; i < 10; i++)
+            {
+                multiVal = multiVal * 2;
+                if (multiVal <= 100)
+                {
+                    if (string.IsNullOrEmpty(strVal))
+                    {
+                        strVal = Convert.ToString(multiVal);
+                    }
+                    else
+                    {
+                        strVal = strVal + "," + Convert.ToString(multiVal);
+                    }
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(strVal))
+            {
+                if (strVal.IndexOf("100") == -1)
+                {
+                    strVal = strVal + ",100";
+                }
+
+            }
+
+            return strVal;
+        }
+        /// <summary>
+        /// To check string dont have these special Charter
+        /// </summary>
+        /// <param name="strInput"></param>
+        /// <returns></returns>
+        public static Boolean IsNormalCharter(string strInput)
+        {
+            return Regex.IsMatch(strInput, @"^[^~`^<>=;+()*&!{}|]+$");
+
+        }
+        /// <summary>
+        /// Check Length of the string
+        /// </summary>
+        /// <param name="strInput"></param>
+        /// <param name="iLength"></param>
+        /// <returns></returns>
+        public static Boolean IsLengthCorrect(string strInput, int iLength)
+        {
+            if (strInput.Length <= iLength)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        public static Boolean ValidateToken(string sToken)
+        {
+            if (string.IsNullOrEmpty(sToken))
+            {
+                return false;
+            }
+            else
+            {
+                if (IsInteger(sToken) == false)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+    }
+}
+
+
+
+CSV format
+
+using System;
+using System.Data;
+using System.Configuration;
+using System.Web;
+//using System.Web.Security;
+//using System.Web.UI;
+//using System.Web.UI.WebControls;
+//using System.Web.UI.WebControls.WebParts;
+//using System.Web.UI.HtmlControls;
+using System.IO;
+using System.Text;
+using System.Collections;
+
+namespace AXAART.Grasp.Common.Utility.ValidationUtility
+{
+    /// <summary>
+    /// CSV reader utility
+    /// </summary>
+    public class CSVReader
+    {
+        private Stream objStream;
+        private StreamReader objReader;
+        public CSVReader(Stream filestream) : this(filestream, null) { }
+        /// <summary>
+        /// check the Pass Stream whether it is readable or not   
+        /// </summary>
+        /// <param name="filestream"></param>
+        /// <param name="enc"></param>
+        public CSVReader(Stream filestream, Encoding enc)
+        {
+            this.objStream = filestream;
+            if (!filestream.CanRead)
+            {
+                return;
+            }
+            objReader = (enc != null) ? new StreamReader(filestream, enc) : new StreamReader(filestream);
+        }
+        /// <summary>
+        /// parse the Line  
+        /// </summary>
+        /// <returns></returns>
+        public string[] GetCSVLine()
+        {
+            string data = objReader.ReadLine();
+            if (data == null) return null;
+            if (data.Length == 0) return new string[0];
+            ArrayList result = new ArrayList();
+            ParseCSVData(result, data);
+            return (string[])result.ToArray(typeof(string));
+        }
+        /// <summary>
+        /// Parse CSV Data
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="data"></param>
+        private void ParseCSVData(ArrayList result, string data)
+        {
+            int position = -1;
+            while (position < data.Length)
+                result.Add(ParseCSVField(ref data, ref position));
+        }
+        /// <summary>
+        /// Parse CSV Field
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="StartSeperatorPos"></param>
+        /// <returns></returns>
+        private string ParseCSVField(ref string data, ref int StartSeperatorPos)
+        {
+            if (StartSeperatorPos == data.Length - 1)
+            {
+                StartSeperatorPos++;
+                return "";
+            }
+            int fromPos = StartSeperatorPos + 1;
+            if (data[fromPos] == '"')
+            {
+                int nextSingleQuote = GetSingleQuote(data, fromPos + 1);
+                int lines = 1;
+                while (nextSingleQuote == -1)
+                {
+                    data = data + "\n" + objReader.ReadLine();
+                    nextSingleQuote = GetSingleQuote(data, fromPos + 1);
+                    lines++;
+                    if (lines > 20)
+                        throw new Exception("lines overflow: " + data);
+                }
+                StartSeperatorPos = nextSingleQuote + 1;
+                string tempString = data.Substring(fromPos + 1, nextSingleQuote - fromPos - 1);
+                tempString = tempString.Replace("'", "''");
+                return tempString.Replace("\"\"", "\"");
+            }
+            int nextComma = data.IndexOf(',', fromPos);
+            if (nextComma == -1)
+            {
+                StartSeperatorPos = data.Length;
+                return data.Substring(fromPos);
+            }
+            else
+            {
+                StartSeperatorPos = nextComma;
+                return data.Substring(fromPos, nextComma - fromPos);
+            }
+        }
+        /// <summary>
+        /// Get Single Quote
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="SFrom"></param>
+        /// <returns></returns>
+        private int GetSingleQuote(string data, int SFrom)
+        {
+            int i = SFrom - 1;
+            while (++i < data.Length)
+                if (data[i] == '"')
+                {
+                    if (i < data.Length - 1 && data[i + 1] == '"')
+                    {
+                        i++;
+                        continue;
+                    }
+                    else
+                        return i;
+                }
+            return -1;
+        }
+    }
+}
+
+
+
+Log file for error
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Microsoft.Practices.EnterpriseLibrary.Logging;
+namespace AXAART.Grasp.Common.Logging
+{
+    public static class LogManager
+    {
+        public static void WriteToLog(String logTitle, String logMessage)
+        {
+            try
+            {
+                //int i = Convert.ToInt16(1) / Convert.ToInt16(0);
+                LogEntry log = new LogEntry();
+                log.Message = logMessage.ToString();
+                log.Title = logTitle.ToString();
+                log.TimeStamp = DateTime.UtcNow;
+                Logger.Write(log);
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+        }
+    }
+}
+
+
+
